@@ -5,7 +5,7 @@
     from exam 2007.
 
     @author Dmitry Kharlamov, student of 1st course DREC MIPT.
-    @version 1.0
+    @version 1.00
 */
 
 #include <stdio.h>
