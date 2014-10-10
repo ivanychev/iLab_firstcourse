@@ -16,3 +16,13 @@ Ivanychev Sergey
 sergeyivanychev@gmail.com
 vk.com/ivanychevsergey
 +79104577995
+<<<<<<< HEAD
+=======
+
+Kharlamov Dmitry
+
+harldmitr@gmail.com
++79680166563
+
+ 
+>>>>>>> dd94e0758e661ae5201d84686af41c1f3c359766

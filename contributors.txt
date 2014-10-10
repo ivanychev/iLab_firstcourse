@@ -1,3 +1,4 @@
 List of contributors:
 
 Sergey Ivanychev
+Dmitry Kharlamov
