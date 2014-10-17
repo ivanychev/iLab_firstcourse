@@ -3,21 +3,19 @@
 #include <stdlib.h>
 #include <float.h>
 
-const int INF_ROOT   = -1;
-      int NO_ROOT    = 0;
-      int ONE_ROOT   = 1;
-      int TWO_ROOT   = 2;
+const int INF_ROOT = -1;
+      int NO_ROOT = 0;
 
-bool is_zero(double x)
+int is_zero(double x)
 {
 	
 	if (abs(x) < DBL_EPSILON)
 	{
-		return true;
+		return 1;
 	}
 	else
 	{
-		return false;
+		return 0;
 	}
 }
 
@@ -27,8 +25,7 @@ int solvesquare(double coeff_1,
                 double* root_1,
                 double* root_2)
 {
-	double discr    = 0,
-               r_discr  = 0;
+	double discr, r_discr;
 	
 	if (is_zero(coeff_1))
 	{
@@ -46,7 +43,7 @@ int solvesquare(double coeff_1,
 		else
 		{
 			*root_1 = -coeff_3/coeff_2;
-			return ONE_ROOT;
+			return 1;
 		}
 	}
 	else
@@ -55,7 +52,7 @@ int solvesquare(double coeff_1,
 		if (is_zero(discr)) 
 		{
 			*root_1 = -coeff_2/(2*coeff_1);
-			return ONE_ROOT;
+			return 1;
 		}
 		else
 		{
@@ -68,7 +65,7 @@ int solvesquare(double coeff_1,
 				r_discr = sqrt(discr);
 				*root_1 = (-coeff_2 - r_discr)/(2*coeff_1);
 				*root_2 = (-coeff_2 + r_discr)/(2*coeff_1);
-				return TWO_ROOT;
+				return 2;
 			}
 		}
 	}
@@ -89,11 +86,11 @@ int main()
 	
 	scanf("%lg %lg %lg", &coeff_1, &coeff_2, &coeff_3);
 	a = solvesquare(coeff_1, coeff_2, coeff_3, &root_1, &root_2);
-	if (a == ONE_ROOT)
+	if (a == 1)
 	{
 		printf("x = %f", root_1);
 	}
-	if (a == TWO_ROOT)
+	if (a == 2)
 	{
 		printf("x1 = %f x2 = %f", root_1, root_2);
 	}
