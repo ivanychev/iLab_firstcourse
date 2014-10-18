@@ -67,8 +67,6 @@ int main()
 {
 
     stack_t stk = {};
-    double* a = (double*) calloc(MAX_LEN_STACK, sizeof(double));
-
 
     stack_Ctor(&stk);
 
@@ -154,14 +152,20 @@ int stack_Ok(struct stack_t* _this)
 int stack_Dump(struct stack_t* _this)
 {
     FILE* logs = fopen(NAME_DUMP_FILE, "a");
-    fprintf(logs, "STACK[0x%x] %s \n"
-            "\tCOUNT = %d\n"
-            "\tDATA[0x%x], max %d\n\n",
-             _this, ((stack_Ok(_this))? "OK" : "!!!BAD!!!"),
-             _this->counter, _this->data, MAX_LEN_STACK);
-
-    for(int i = 0; i < MAX_LEN_STACK; i++)
-        fprintf(logs, "\t\t[%d] = %lg %c\n", i, _this->data[i],
+    
+    int is_OK = stack_Ok(_this);
+    
+    fprintf(logs, "STACK[0x%x] %s \n",
+             _this, ((is_OK)? "OK" : "!!!BAD!!!"));
+    if(!is_OK) fprintf(logs, "ERROR NUMBER %d", last_stack_error);
+    
+    if(_this) fprintf(logs, "\tCOUNT = %d\n"
+                "\tDATA[0x%x], max %d\n\n",
+                _this->counter, _this->data, MAX_LEN_STACK);
+    
+    if(_this->data)
+        for(int i = 0; i < MAX_LEN_STACK; i++)
+            fprintf(logs, "\t\t[%d] = %lg %c\n", i, _this->data[i],
                 ((i < _this->counter)? '*' : ' '));
 
     fclose(logs);
