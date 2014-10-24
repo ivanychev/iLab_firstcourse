@@ -1,203 +1,189 @@
-/**
-    @file
-    My realization of data structure STACK of real numbers
-    with processing errors
-
-    @author Dmitry Kharlamov, student of 1st course DREC MIPT.
-    @version 1.0
-*/
+#include "stack.h"
+#include <unistd.h>
 
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <assert.h>
-#include <ctype.h>
-#include <string.h>
-#include <locale.h>
+//=============ERRORs ENUM=============================
 
-#define ISOKSTACK( cond ) if (!stack_Ok(cond)) { stack_Dump(cond); return 0; }
-
-#define ISNOTNULL( cond ) if (!(cond)) { last_stack_error = ENULLPTR; return 0; }
-#define ISINLIMIT( cond ) if (!(0 <= (cond->counter) && (cond->counter) < MAX_LEN_STACK)) \
-{ last_stack_error = EOUTLIMIT; stack_Dump(cond); return 0; }
-
-#define er( cond ) if(!(cond)) { printf(error_processing()); assert(0);}
-
-
-//=============ERRORs CONST=============================
-
-const int  ENULLPTR = 1000;
-const int EOUTLIMIT = 1001;
-const int     EPUSH = 1002;
-const int      EPOP = 1003;
-
-//==============CONSTANTS===============================
-
-const int MAX_LEN_STACK = 20;
-int last_stack_error = 0;
-char* NAME_DUMP_FILE = "logs.txt";
-
-//STACK!!!
-struct stack_t
+enum ERRORS
 {
-    double* data;
-        int counter;
+    STARTERRORS     = 1000,
+    ENULLPTR        = 1001,
+    ECNTOUTLIM      = 1002,
+    ELENOUTLIM      = 1003,
+    EPOP            = 1004,
+    EPUSH           = 1005,
+    ELOGFILE        = 1006,
+    NOERROR         = 1007,
 
 };
 
-//=======INIT FUNTIONS FOR MANIPULATE STACK=============
 
-int stack_Ctor( stack_t* _this);
+//STACK!!!
+struct stack_t_
+{
+        double*     data;
+            int     counter;
+            int     len;
 
-int stack_Push(struct stack_t* _this, double value);
+};
 
-int stack_Pop(struct stack_t* _this, double* value);
+//================CONSTANTS============================
+const int MAX_STACK = 1000000;
 
-int stack_Ok(struct stack_t* _this);
+//=========DESCRIPTIONS OF ERRORS======================
 
-int stack_Dump(struct stack_t* _this);
+const char* ERRDESCRIP[] =
+{
+    "START",
+    "ERROR! Trying to work with null address!\n",
+    "ERROR! Stack counter isn't in range(0, len of stack)!\n",
+    "ERROR! Stack length isn't in range(0, MAX LEN)!\n",
+    "ERROR! Trying pop empty stack!\n",
+    "ERROR! Trying push full stack!\n",
+    "ERROR! Can't open log file!\n",
+    "NO ERROR!"
 
-int stack_Dtor(struct stack_t* _this);
+};
 
-char* error_processing();
-
-
-int main()
+//================FUNCTIONS============================
+int stack_Ctor(stack_t** _this, int length)
 {
 
-    stack_t stk = {};
+    stack_t* stk  = (stack_t*) calloc(sizeof(*stk), 1);
 
-    stack_Ctor(&stk);
+    ISNOTNULL(stk);
 
-    stack_Push(&stk, 10);
-    stack_Push(&stk, 20);
-    stack_Push(&stk, 30);
+    if (0 < length && length < MAX_STACK) stk->len = length;
+    else return ELENOUTLIM;
 
-    stack_Dump(&stk);
+    stk->data = (double*) calloc(stk->len, sizeof(double));
+    stk->counter = 0;
 
-    double i = 0;
+    if (!stk->data) return ENULLPTR;
 
-    er(!stack_Pop(&stk, &i));
-    printf("%lg\n", i);
+    *_this = stk;
 
-    er(stack_Pop(&stk, &i));
-    printf("%lg\n", i);
-
-    er(stack_Pop(&stk, &i));
-    printf("%lg\n", i);
-
-    er(stack_Pop(&stk, &i));
-
-    stack_Dtor(&stk);
     return 0;
 }
 
-
-
-int stack_Ctor(struct stack_t* _this)
+int stack_Push(stack_t* _this, double value)
 {
-    ISNOTNULL(_this);
+    ISOKSTK(_this);
 
-    _this->data = (double*) calloc(MAX_LEN_STACK, sizeof(double));
-    _this->counter = 0;
-
-    ISNOTNULL(_this->data);
-
-    return 1;
-}
-
-int stack_Push(struct stack_t* _this, double value)
-{
-    ISOKSTACK(_this);
-
-    if(_this->counter == MAX_LEN_STACK) {last_stack_error = EPUSH; stack_Dump(_this); return 0;}
+    if(_this->counter == _this->len) return EPUSH;
 
     _this->data[_this->counter] = value;
     (_this->counter)++;
 
-    ISINLIMIT(_this);
+    ISOKSTK(_this);
 
-    ISOKSTACK(_this);
-
-    return 1;
+    return 0;
 }
 
-int stack_Pop(struct stack_t* _this, double* value)
+int stack_Pop(stack_t* _this, double* value)
 {
-    *value = -13.666;
+    ISOKSTK(_this);
+    ISNOTNULL(value);
 
-    ISOKSTACK(_this);
-
-    if(_this->counter == 0) {last_stack_error = EPOP; stack_Dump(_this); return 0;}
+    if(_this->counter == 0) return EPOP;
 
     (_this->counter)--;
     *value = _this->data[_this->counter];
 
-    ISOKSTACK(_this);
+    ISOKSTK(_this);
 
-    return 1;
+    return 0;
 }
 
-int stack_Ok(struct stack_t* _this)
+int stack_Ok(stack_t* _this)
 {
 
     ISNOTNULL(_this);
     ISNOTNULL(_this->data);
-    ISINLIMIT(_this);
+    ISLENINLIM(_this)
+    ISCNTINLIM(_this);
 
-    return 1;
+    return 0;
 }
 
-int stack_Dump(struct stack_t* _this)
+int stack_Print(stack_t* _this)
 {
-    FILE* logs = fopen(NAME_DUMP_FILE, "a");
-    
+    ISOKSTK(_this);
+    if (_this->counter == 0) printf("Stack is empty.\n");
+    for(int i = _this->counter-1; i >= 0; i--)
+        printf("#%d\t%lg\n", i+1, _this->data[i]);
+
+    return 0;
+}
+
+int stack_Dump(stack_t* _this)
+{
+    ISNOTNULL(_this);
+
     int is_OK = stack_Ok(_this);
-    
-    fprintf(logs, "STACK[0x%x] %s \n",
-             _this, ((is_OK)? "OK" : "!!!BAD!!!"));
-    if(!is_OK) fprintf(logs, "ERROR NUMBER %d", last_stack_error);
-    
-    if(_this) fprintf(logs, "\tCOUNT = %d\n"
+    fprintf(stderr, "-----------------------\n");
+    fprintf(stderr, "STACK[0x%x] %s \n",
+             _this, ((!is_OK)? "OK" : "!!!BAD!!!"));
+    if(is_OK) fprintf(stderr, "ERROR NUMBER %d", is_OK);
+
+    if(_this) fprintf(stderr, "\tCOUNT = %d\n"
                 "\tDATA[0x%x], max %d\n\n",
-                _this->counter, _this->data, MAX_LEN_STACK);
-    
+                _this->counter, _this->data, _this->len);
+
     if(_this->data)
-        for(int i = 0; i < MAX_LEN_STACK; i++)
-            fprintf(logs, "\t\t[%d] = %lg %c\n", i, _this->data[i],
+        for(int i = 0; i < _this->len; i++)
+            fprintf(stderr, "\t\t[%d] = %lg %c\n", i, _this->data[i],
                 ((i < _this->counter)? '*' : ' '));
 
-    fclose(logs);
-    return 1;
+    fprintf(stderr, "\n\n");
+    if(stderr != stdout) fflush(stderr);
+
+    return 0;
 }
 
-int stack_Dtor(struct stack_t* _this)
+int stack_Dtor(stack_t* _this)
 {
+    ISNOTNULL(_this);
+
     free(_this->data);
     _this->data = NULL;
 
     _this->counter = -1;
 
     _this = NULL;
-    return 1;
+    return 0;
 
 }
 
-char* error_processing()
+int error_processing(stack_t* _this, int errnum)
 {
-    switch(last_stack_error)
-    {
-    case ENULLPTR:
-        return "ERROR! Trying to work with null address!\n";
-    case EOUTLIMIT:
-        return "ERROR! Stack counter isn't in range(0, MAX_LEN_STACK)!\n";
-    case EPOP:
-        return "ERROR! Trying push full stack!\n";
-    case EPUSH:
-        return "ERROR! Trying pop empty stack!\n";
-    default:
-        return "ERROR! Unknown error!\n";
-    }
+    if (!errnum) return 0;
 
+    stack_Dump(_this);
+    end_logging();
+
+    fprintf(stderr, "%s", ERRDESCRIP[errnum - STARTERRORS]);
+
+}
+
+int start_logging(char* log_file)
+{
+    ISNOTNULL(log_file);
+
+    fflush(stderr);
+    fclose(stderr);
+
+    if(!freopen(log_file, "w", stderr)) return ELOGFILE;
+
+    return 0;
+}
+
+int end_logging()
+{
+    fflush(stderr);
+    fclose(stderr);
+
+    dup2(fileno(stdout), fileno(stderr));
+
+    return 0;
 }
