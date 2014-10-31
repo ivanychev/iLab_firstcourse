@@ -4,6 +4,8 @@
 //#include "errors.h"
 #include "commands.h"
 
+const int FOREVER = 1;
+
 struct cpu_t_
 {
     stack_t *stk;
@@ -36,6 +38,8 @@ int cpu_input_code(char** code, char* file_name)
 
 int cpu_interface(char* code)
 {
+    assert(code);
+
     cpu_t original_cpu;
     cpu_t* cpu = &original_cpu;
 
@@ -43,11 +47,9 @@ int cpu_interface(char* code)
 
     char* current_byte = code;
 
-
-
     start_logging("logs.txt");
 
-    while(1)
+    while(FOREVER)
     {
         int cmd = *current_byte;
         current_byte++;
@@ -135,10 +137,9 @@ int cpu_interface(char* code)
             break;
         default:
         {
-            printf("NO\n");
+            fprintf(stderr, "ERROR! Unknown command at address %o. \n", (int)current_byte);
             return 0;
         }
-
 
         }
 

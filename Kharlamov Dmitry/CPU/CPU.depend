@@ -11,8 +11,9 @@
 
 1414715970 d:\projects\ilab_firstcourse\kharlamov dmitry\cpu\cpu.h
 
-1414715860 source:d:\projects\ilab_firstcourse\kharlamov dmitry\cpu\main.cpp
+1414719966 source:d:\projects\ilab_firstcourse\kharlamov dmitry\cpu\main.cpp
 	"stdlib.h"
+	"stdio.h"
 	"CPU.h"
 
 1414716479 source:d:\projects\ilab_firstcourse\kharlamov dmitry\cpu\stack\stack.cpp
