@@ -1,0 +1,34 @@
+# depslib dependency file v1.0
+1414716278 source:d:\projects\ilab_firstcourse\kharlamov dmitry\cpu\cpu.cpp
+	"stack\stack.h"
+	"resources.h"
+	"CPU.h"
+	"commands.h"
+
+1414716270 d:\projects\ilab_firstcourse\kharlamov dmitry\cpu\stack\stack.h
+	"../resources.h"
+	"../errors.h"
+
+1414715970 d:\projects\ilab_firstcourse\kharlamov dmitry\cpu\cpu.h
+
+1414715860 source:d:\projects\ilab_firstcourse\kharlamov dmitry\cpu\main.cpp
+	"stdlib.h"
+	"CPU.h"
+
+1414716479 source:d:\projects\ilab_firstcourse\kharlamov dmitry\cpu\stack\stack.cpp
+	"stack.h"
+	<unistd.h>
+
+1414636122 d:\projects\ilab_firstcourse\kharlamov dmitry\cpu\commands.h
+
+1414716040 d:\projects\ilab_firstcourse\kharlamov dmitry\cpu\resources.h
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<assert.h>
+	<ctype.h>
+	<string.h>
+	<locale.h>
+
+1414716498 d:\projects\ilab_firstcourse\kharlamov dmitry\cpu\errors.h
+

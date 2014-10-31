@@ -1,0 +1,11 @@
+push 0
+start:
+push 1
+add
+out
+pop ax
+push ax
+push ax
+push 10
+ja start
+end
