@@ -2,6 +2,7 @@
 #include "stack.h"
 #include <unistd.h>
 
+#define ISOKSTK( stack ) if (stack_Ok(stack)) return stack_Ok(stack);
 
 //STACK!!!
 struct stack_t_
@@ -15,25 +16,6 @@ struct stack_t_
 //================CONSTANTS============================
 const int MAX_STACK = 1000000;
 
-//================DESCRIPTIONS OF ERRORS===============
-const char* ERRDESCRIP[] =
-{
-    "START",
-    "ERROR! Trying to work with null address!\n",
-//==============================================
-//STACK ERRORS
-//==============================================
-    "ERROR! Stack counter isn't in range(0, len of stack)!\n",
-    "ERROR! Stack length isn't in range(0, MAX LEN)!\n",
-    "ERROR! Trying pop empty stack!\n",
-    "ERROR! Trying push full stack!\n",
-    "ERROR! Can't open log file!\n",
-//==============================================
-//CPU ERRORS
-//==============================================
-    "NO ERROR!"
-
-};
 
 
 //================FUNCTIONS============================
@@ -61,7 +43,7 @@ int stack_Push(stack_t* _this, double value)
 {
     ISOKSTK(_this);
 
-    if(_this->counter == _this->len) return EPUSH;
+    if(_this->counter == _this->len) { int err = stack_Resize(_this); if(err) return EPUSH;}
 
     _this->data[_this->counter] = value;
     (_this->counter)++;
@@ -100,7 +82,9 @@ int stack_Ok(stack_t* _this)
 int stack_Print(stack_t* _this)
 {
     ISOKSTK(_this);
+
     if (_this->counter == 0) printf("Stack is empty.\n");
+
     for(int i = _this->counter-1; i >= 0; i--)
         printf("#%d\t%lg\n", i+1, _this->data[i]);
 
@@ -132,6 +116,21 @@ int stack_Dump(stack_t* _this)
     return 0;
 }
 
+int stack_Resize(stack_t* _this)
+{
+    ISOKSTK(_this);
+
+    if (_this->len * 1.5 + 1 < MAX_STACK) _this->len = _this->len * 1.5 + 1;
+    else return ERESIZE;
+
+    _this->data = (double*) realloc(_this->data, _this->len);
+
+    ISNOTNULL(_this->data);
+
+    return 0;
+}
+
+
 int stack_Dtor(stack_t* _this)
 {
     ISNOTNULL(_this);
@@ -153,7 +152,7 @@ int error_processing(stack_t* _this, int errnum)
     stack_Dump(_this);
     end_logging();
 
-    fprintf(stderr, "%s", ERRDESCRIP[errnum - STARTERRORS]);
+    fprintf(stderr, "%s", err_to_str(errnum));
 
 }
 

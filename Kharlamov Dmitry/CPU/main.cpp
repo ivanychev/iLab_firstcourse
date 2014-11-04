@@ -10,7 +10,7 @@ int main(int arvc, char* argv[])
     if (arvc == 1) cpu_input_code(&code, "program.code");
     else cpu_input_code(&code, argv[1]);
 
-    cpu_interface(code);
+    cpu_run(code);
 
     free(code);
 

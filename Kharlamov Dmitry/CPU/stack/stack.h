@@ -4,12 +4,9 @@
 #include "../resources.h"
 #include "../errors.h"
 
-#define ISOKSTK( stack ) if (stack_Ok(stack)) return stack_Ok(stack);
-#define ISNOTNULL( ptr ) if (!ptr) return ENULLPTR;
-#define ISCNTINLIM( stack ) if (!(0 <= stack->counter && stack->counter < stack->len)) return ECNTOUTLIM;
-#define ISLENINLIM( stack ) if (!(0 <= stack->len && stack->len < MAX_STACK)) return ELENOUTLIM;
 
-#define OK( errnum, stack ) if(errnum) { error_processing(stack, errnum); assert(0); }
+//#define OK( errnum, stack ) if(errnum) { error_processing(stack, errnum); assert(0); }
+
 
 
 //STACK!!!
@@ -30,6 +27,8 @@ int stack_Ok(stack_t* _this);
 int stack_Print(stack_t* _this);
 
 int stack_Dump(stack_t* _this);
+
+int stack_Resize(stack_t* _this);
 
 int stack_Dtor(stack_t* _this);
 

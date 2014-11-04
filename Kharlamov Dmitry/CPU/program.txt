@@ -4,8 +4,13 @@ push 1
 add
 out
 pop ax
+pop ax
+pop ax
+pop ax
+pop ax
 push ax
 push ax
 push 10
 ja start
+dump
 end

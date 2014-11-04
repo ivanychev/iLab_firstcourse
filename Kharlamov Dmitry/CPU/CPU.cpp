@@ -1,10 +1,23 @@
+/**
+    @file
+    This program is my realization stack CPU.
+    It gets byte code files and execute it.
+    Output - console. Logs - logs.txt
+
+    @author Dmitry Kharlamov, student of 1st course DREC MIPT.
+    @version 1.0
+*/
+
 #include "stack\stack.h"
 #include "resources.h"
 #include "CPU.h"
-//#include "errors.h"
 #include "commands.h"
 
-const int FOREVER = 1;
+
+#define ERRHANDLER if (__errnum) { errlog(__errnum, __FILE__, __LINE__); cpu_dump(_this); return __errnum; }
+
+const int       FOREVER = 1;
+const int CPU_STACK_MAX = 10000;
 
 struct cpu_t_
 {
@@ -13,10 +26,18 @@ struct cpu_t_
     double bx;
     double cx;
     double dx;
-    int code;
+    char* addr;
 
 };
 
+/**
+    This function inputs byte code of instructions
+
+    @param      code   pointer on array of byte code
+    @param file_name   name of file to input
+
+    @return number of error(0 if no error)
+*/
 int cpu_input_code(char** code, char* file_name)
 {
 
@@ -36,19 +57,27 @@ int cpu_input_code(char** code, char* file_name)
     return 0;
 }
 
-int cpu_interface(char* code)
+/**
+    This function exec byte code of instructions
+
+    @param      code  array of byte code
+
+    @return number of error(0 if no error)
+*/
+int cpu_run(char* addr_code)
 {
-    assert(code);
+    assert(addr_code);
 
-    cpu_t original_cpu;
-    cpu_t* cpu = &original_cpu;
+    cpu_t* cpu = NULL;
 
-    cpu_ctor(&cpu, 20, (int)code);
+    cpu_ctor(&cpu, CPU_STACK_MAX, addr_code);
 
-    char* current_byte = code;
+    char* current_byte = addr_code;
 
     start_logging("logs.txt");
 
+
+    int __errnum = 0;
     while(FOREVER)
     {
         int cmd = *current_byte;
@@ -57,79 +86,79 @@ int cpu_interface(char* code)
         switch(cmd)
         {
         case PUSH:
-            cpu_push(cpu, &current_byte);
+            if(cpu_push(cpu, &current_byte)) printf("CPU CRASHED! PUSH HAVEN'T FULFILLED");
             break;
 
         case POP:
-            cpu_pop(cpu, &current_byte);
+            if(cpu_pop(cpu, &current_byte)) printf("CPU CRASHED! POP HAVEN'T FULFILLED");
             break;
 
         case OK:
-            cpu_ok(cpu);
+            if(cpu_ok(cpu)) printf("CPU CRASHED! CPU ISN'T OK");
             break;
 
         case DUMP:
-            cpu_dump(cpu);
+            if(cpu_dump(cpu)) printf("CPU CRASHED! DUMP HAVEN'T FULFILLED");
             break;
 
         case ADD:
-            cpu_add(cpu);
+            if(cpu_add(cpu)) printf("CPU CRASHED! ADD HAVEN'T FULFILLED");
             break;
 
         case SUB:
-            cpu_sub(cpu);
+            if(cpu_sub(cpu)) printf("CPU CRASHED! SUB HAVEN'T FULFILLED");
             break;
 
         case MUL:
-            cpu_mul(cpu);
+            if(cpu_mul(cpu)) printf("CPU CRASHED! MUL HAVEN'T FULFILLED");
             break;
 
         case DIR:
-            cpu_dir(cpu);
+            if(cpu_dir(cpu)) printf("CPU CRASHED! DIR HAVEN'T FULFILLED");
             break;
 
         case SIN:
-            cpu_sin(cpu);
+            if(cpu_sin(cpu)) printf("CPU CRASHED! SIN HAVEN'T FULFILLED");
             break;
 
         case COS:
-            cpu_cos(cpu);
+            if(cpu_cos(cpu)) printf("CPU CRASHED! COS HAVEN'T FULFILLED");
             break;
 
         case SQRT:
-            cpu_sqrt(cpu);
+            if(cpu_sqrt(cpu)) printf("CPU CRASHED! SQRT HAVEN'T FULFILLED");
             break;
 
         case JA:
-            cpu_ja(cpu, &current_byte);
+            if(cpu_ja(cpu, &current_byte)) printf("CPU CRASHED! JA HAVEN'T FULFILLED");
             break;
 
         case JAE:
-            cpu_jae(cpu, &current_byte);
+            if(cpu_jae(cpu, &current_byte)) printf("CPU CRASHED! JAE HAVEN'T FULFILLED");
             break;
 
         case JB:
-            cpu_jb(cpu, &current_byte);
+            if(cpu_jb(cpu, &current_byte)) printf("CPU CRASHED! JB HAVEN'T FULFILLED");
             break;
 
         case JBE:
-            cpu_jbe(cpu, &current_byte);
+            if(cpu_jbe(cpu, &current_byte)) printf("CPU CRASHED! JBE HAVEN'T FULFILLED");
             break;
 
         case JE:
-            cpu_je(cpu, &current_byte);
+            if(cpu_je(cpu, &current_byte)) printf("CPU CRASHED! JE HAVEN'T FULFILLED");
             break;
 
         case JNE:
-            cpu_jne(cpu, &current_byte);
+            if(cpu_jne(cpu, &current_byte)) printf("CPU CRASHED! JNE HAVEN'T FULFILLED");
             break;
 
         case JMP:
-            cpu_jmp(cpu, &current_byte);
+            if(cpu_jmp(cpu, &current_byte)) printf("CPU CRASHED! JMP HAVEN'T FULFILLED");
             break;
 
         case OUT:
-            cpu_out(cpu);
+            if(cpu_out(cpu)) printf("CPU CRASHED! OUT HAVEN'T FULFILLED");
             break;
 
         case END:
@@ -138,7 +167,7 @@ int cpu_interface(char* code)
         default:
         {
             fprintf(stderr, "ERROR! Unknown command at address %o. \n", (int)current_byte);
-            return 0;
+            return 1;
         }
 
         }
@@ -147,32 +176,28 @@ int cpu_interface(char* code)
     return 0;
 }
 
-int cmd(int cmd, char** ptr_current_byte)
+int cpu_ctor(cpu_t** _this, int length, char* addr)
 {
-    char* current_byte = *ptr_current_byte;
+    int __errnum = 0;
+    cpu_t* cpu = (cpu_t*) calloc(sizeof(cpu_t), 1);
 
-
-
-
-    *ptr_current_byte = current_byte;
-    return 0;
-}
-
-
-
-int cpu_ctor(cpu_t** _this, int length, int code)
-{
-    cpu_t* cpu = *_this;
+    ISNOTNULL(cpu);
     assert(length > 0);
 
+    __errnum = stack_Ctor(&(cpu->stk), length);
 
-    stack_Ctor(&(cpu->stk), length);
+    if (__errnum)
+        {
+            errlog(__errnum, __FILE__, __LINE__);
+            cpu_dump(*_this);
+            return __errnum;
+        }
 
     cpu->ax = 0.0;
     cpu->bx = 0.0;
     cpu->cx = 0.0;
     cpu->dx = 0.0;
-    cpu->code = code;
+    cpu->addr = addr;
 
     *_this = cpu;
 
@@ -181,6 +206,9 @@ int cpu_ctor(cpu_t** _this, int length, int code)
 
 int cpu_push(cpu_t* _this, char** ptr_current_byte)
 {
+    ISNOTNULL(_this);
+    int __errnum = 0;
+
     char* current_byte = *ptr_current_byte;
 
     if (*current_byte == NUM)
@@ -189,19 +217,22 @@ int cpu_push(cpu_t* _this, char** ptr_current_byte)
 
         double a = *(double*)current_byte;
 
-        OK(stack_Push(_this->stk, a), _this->stk);
+        __errnum = stack_Push(_this->stk, a);
 
         current_byte += sizeof(double);
     }
     else
     {
+        if (*current_byte != REG) return ECPUPUSH;
         current_byte++;
-        if (*current_byte == AX) stack_Push(_this->stk, _this->ax);
-        if (*current_byte == BX) stack_Push(_this->stk, _this->bx);
-        if (*current_byte == CX) stack_Push(_this->stk, _this->cx);
-        if (*current_byte == DX) stack_Push(_this->stk, _this->dx);
+        if (*current_byte == AX) __errnum = stack_Push(_this->stk, _this->ax);
+        if (*current_byte == BX) __errnum = stack_Push(_this->stk, _this->bx);
+        if (*current_byte == CX) __errnum = stack_Push(_this->stk, _this->cx);
+        if (*current_byte == DX) __errnum = stack_Push(_this->stk, _this->dx);
         current_byte++;
     }
+
+    ERRHANDLER;
 
     *ptr_current_byte = current_byte;
     return 0;
@@ -209,12 +240,19 @@ int cpu_push(cpu_t* _this, char** ptr_current_byte)
 
 int cpu_pop(cpu_t* _this, char** ptr_current_byte)
 {
+    ISNOTNULL(_this);
+    ISNOTNULL(ptr_current_byte);
+    ISNOTNULL(*ptr_current_byte);
+    int __errnum = 0;
+
     char* current_byte = *ptr_current_byte;
 
-    if (*current_byte == AX) stack_Pop(_this->stk, &(_this->ax));
-    if (*current_byte == BX) stack_Pop(_this->stk, &(_this->bx));
-    if (*current_byte == CX) stack_Pop(_this->stk, &(_this->cx));
-    if (*current_byte == DX) stack_Pop(_this->stk, &(_this->dx));
+    if (*current_byte == AX) __errnum = stack_Pop(_this->stk, &(_this->ax));
+    if (*current_byte == BX) __errnum = stack_Pop(_this->stk, &(_this->bx));
+    if (*current_byte == CX) __errnum = stack_Pop(_this->stk, &(_this->cx));
+    if (*current_byte == DX) __errnum = stack_Pop(_this->stk, &(_this->dx));
+
+    ERRHANDLER;
 
     (*ptr_current_byte)++;
 
@@ -223,14 +261,17 @@ int cpu_pop(cpu_t* _this, char** ptr_current_byte)
 
 int cpu_ok(cpu_t* _this)
 {
-    if(!_this) return ENULLPTR;
+    ISNOTNULL(_this);
+    ISNOTNULL(_this->addr);
     return stack_Ok(_this->stk);
+
+
     return 0;
 }
 
 int cpu_dump(cpu_t* _this)
 {
-    start_logging("logs.txt");
+    ISNOTNULL(_this);
 
     stack_Dump(_this->stk);
 
@@ -238,25 +279,62 @@ int cpu_dump(cpu_t* _this)
             _this->ax, _this->bx, _this->cx, _this->dx);
 
 
+    if (!_this->addr) fprintf(stderr, "Invalid address to byte code\n");
+    else for(char* ptr = _this->addr; *ptr != END; ptr++)
+    {
+        if ((ptr - _this->addr) > CODE_SIZE) break;
+        int byte = *ptr;
+        fprintf(stderr, "%02x ", byte);
+    }
+    fprintf(stderr, "\n\n");
+
+
 }
 
 int cpu_add(cpu_t* _this)
 {
-    double a, b;
-    OK(stack_Pop(_this->stk, &a), _this->stk);
-    OK(stack_Pop(_this->stk, &b), _this->stk);
-    OK(stack_Push(_this->stk, (a + b)), _this->stk);
+    ISNOTNULL(_this);
+    int __errnum = 0;
+
+    double a = 0.0;
+
+    __errnum = stack_Pop(_this->stk, &a);
+
+    ERRHANDLER;
+
+    double b = 0.0;
+
+    __errnum = stack_Pop(_this->stk, &b);
+
+    ERRHANDLER;
+
+    __errnum = stack_Push(_this->stk, (a + b));
+
+    ERRHANDLER;
 
     return 0;
 }
 
 int cpu_sub(cpu_t* _this)
 {
-    double a, b;
-    stack_Pop(_this->stk, &a);
-    stack_Pop(_this->stk, &b);
+    ISNOTNULL(_this);
+    int __errnum = 0;
 
-    stack_Push(_this->stk, (a - b));
+    double a = 0.0;
+
+    __errnum = stack_Pop(_this->stk, &a);
+
+    ERRHANDLER;
+
+    double b = 0.0;
+
+    __errnum = stack_Pop(_this->stk, &b);
+
+    ERRHANDLER;
+
+    __errnum = stack_Push(_this->stk, (a - b));
+
+    ERRHANDLER;
 
     return 0;
 
@@ -264,11 +342,24 @@ int cpu_sub(cpu_t* _this)
 
 int cpu_mul(cpu_t* _this)
 {
-    double a, b;
-    stack_Pop(_this->stk, &a);
-    stack_Pop(_this->stk, &b);
+    ISNOTNULL(_this);
+    int __errnum = 0;
 
-    stack_Push(_this->stk, (a * b));
+    double a = 0.0;
+
+    __errnum = stack_Pop(_this->stk, &a);
+
+    ERRHANDLER;
+
+    double b = 0.0;
+
+    __errnum = stack_Pop(_this->stk, &b);
+
+    ERRHANDLER;
+
+    __errnum = stack_Push(_this->stk, (a * b));
+
+    ERRHANDLER;
 
     return 0;
 
@@ -276,11 +367,24 @@ int cpu_mul(cpu_t* _this)
 
 int cpu_dir(cpu_t* _this)
 {
-    double a, b;
-    stack_Pop(_this->stk, &a);
-    stack_Pop(_this->stk, &b);
+    ISNOTNULL(_this);
+    int __errnum = 0;
 
-    stack_Push(_this->stk, a / b);
+    double a = 0.0;
+
+    __errnum = stack_Pop(_this->stk, &a);
+
+    ERRHANDLER;
+
+    double b = 0.0;
+
+    __errnum = stack_Pop(_this->stk, &b);
+
+    ERRHANDLER;
+
+    __errnum = stack_Push(_this->stk, (a / b));
+
+    ERRHANDLER;
 
     return 0;
 
@@ -288,10 +392,18 @@ int cpu_dir(cpu_t* _this)
 
 int cpu_sin(cpu_t* _this)
 {
-    double a;
-    stack_Pop(_this->stk, &a);
+    ISNOTNULL(_this);
+    int __errnum = 0;
 
-    stack_Push(_this->stk, sin(a));
+    double a = 0.0;
+
+    __errnum = stack_Pop(_this->stk, &a);
+
+    ERRHANDLER;
+
+    __errnum = stack_Push(_this->stk, sin(a));
+
+    ERRHANDLER;
 
     return 0;
 
@@ -299,10 +411,18 @@ int cpu_sin(cpu_t* _this)
 
 int cpu_cos(cpu_t* _this)
 {
-    double a;
-    stack_Pop(_this->stk, &a);
+    ISNOTNULL(_this);
+    int __errnum = 0;
 
-    stack_Push(_this->stk, cos(a));
+    double a = 0.0;
+
+    __errnum = stack_Pop(_this->stk, &a);
+
+    ERRHANDLER;
+
+    __errnum = stack_Push(_this->stk, cos(a));
+
+    ERRHANDLER;
 
     return 0;
 
@@ -310,10 +430,18 @@ int cpu_cos(cpu_t* _this)
 
 int cpu_sqrt(cpu_t* _this)
 {
-    double a;
-    stack_Pop(_this->stk, &a);
+    ISNOTNULL(_this);
+    int __errnum = 0;
 
-    stack_Push(_this->stk, sqrt(a));
+    double a = 0.0;
+
+    __errnum = stack_Pop(_this->stk, &a);
+
+    ERRHANDLER;
+
+    __errnum = stack_Push(_this->stk, sqrt(a));
+
+    ERRHANDLER;
 
     return 0;
 
@@ -321,15 +449,28 @@ int cpu_sqrt(cpu_t* _this)
 
 int cpu_ja(cpu_t* _this, char** current_byte)
 {
-    double a, b;
+    ISNOTNULL(_this);
+    int __errnum = 0;
 
-    stack_Pop(_this->stk, &a);
-    stack_Pop(_this->stk, &b);
+    double a = 0.0;
 
-    //stack_Push(_this->stk, a);
-    //stack_Push(_this->stk, b);
+    __errnum = stack_Pop(_this->stk, &a);
 
-    if (a > b) *current_byte = (char*)_this->code + *(int*)(*current_byte);
+    ERRHANDLER;
+
+    double b = 0.0;
+
+    __errnum = stack_Pop(_this->stk, &b);
+
+    ERRHANDLER;
+
+    int label = *(int*)(*current_byte);
+
+    if (label < 0) __errnum = EJMPBADLABEL;
+
+    ERRHANDLER;
+
+    if (a > b) *current_byte = _this->addr + label;
     else *current_byte += sizeof(int);
 
     return 0;
@@ -339,12 +480,28 @@ int cpu_ja(cpu_t* _this, char** current_byte)
 int cpu_jae(cpu_t* _this, char** current_byte)
 {
 
-    double a, b;
+    ISNOTNULL(_this);
+    int __errnum = 0;
 
-    stack_Pop(_this->stk, &a);
-    stack_Pop(_this->stk, &b);
+    double a = 0.0;
 
-    if (a >= b) *current_byte = (char*)_this->code + *(int*)(*current_byte);
+    __errnum = stack_Pop(_this->stk, &a);
+
+    ERRHANDLER;
+
+    double b = 0.0;
+
+    __errnum = stack_Pop(_this->stk, &b);
+
+    ERRHANDLER;
+
+    int label = *(int*)(*current_byte);
+
+    if (label < 0) __errnum = EJMPBADLABEL;
+
+    ERRHANDLER;
+
+    if (a >= b) *current_byte = _this->addr + label;
     else *current_byte += sizeof(int);
 
     return 0;
@@ -353,12 +510,28 @@ int cpu_jae(cpu_t* _this, char** current_byte)
 
 int cpu_jb(cpu_t* _this, char** current_byte)
 {
-    double a, b;
+    ISNOTNULL(_this);
+    int __errnum = 0;
 
-    stack_Pop(_this->stk, &a);
-    stack_Pop(_this->stk, &b);
+    double a = 0.0;
 
-    if (a < b) *current_byte = (char*)_this->code + *(int*)(*current_byte);
+    __errnum = stack_Pop(_this->stk, &a);
+
+    ERRHANDLER;
+
+    double b = 0.0;
+
+    __errnum = stack_Pop(_this->stk, &b);
+
+    ERRHANDLER;
+
+    int label = *(int*)(*current_byte);
+
+    if (label < 0) __errnum = EJMPBADLABEL;
+
+    ERRHANDLER;
+
+    if (a < b) *current_byte = _this->addr + label;
     else *current_byte += sizeof(int);
 
     return 0;
@@ -367,12 +540,28 @@ int cpu_jb(cpu_t* _this, char** current_byte)
 
 int cpu_jbe(cpu_t* _this, char** current_byte)
 {
-    double a, b;
+    ISNOTNULL(_this);
+    int __errnum = 0;
 
-    stack_Pop(_this->stk, &a);
-    stack_Pop(_this->stk, &b);
+    double a = 0.0;
 
-    if (a <= b) *current_byte = (char*)_this->code + *(int*)(*current_byte);
+    __errnum = stack_Pop(_this->stk, &a);
+
+    ERRHANDLER;
+
+    double b = 0.0;
+
+    __errnum = stack_Pop(_this->stk, &b);
+
+    ERRHANDLER;
+
+    int label = *(int*)(*current_byte);
+
+    if (label < 0) __errnum = EJMPBADLABEL;
+
+    ERRHANDLER;
+
+    if (a <= b) *current_byte = _this->addr + label;
     else *current_byte += sizeof(int);
 
     return 0;
@@ -381,12 +570,28 @@ int cpu_jbe(cpu_t* _this, char** current_byte)
 
 int cpu_je(cpu_t* _this, char** current_byte)
 {
-    double a, b;
+    ISNOTNULL(_this);
+    int __errnum = 0;
 
-    stack_Pop(_this->stk, &a);
-    stack_Pop(_this->stk, &b);
+    double a = 0.0;
 
-    if (a == b) *current_byte = (char*)_this->code + *(int*)(*current_byte);
+    __errnum = stack_Pop(_this->stk, &a);
+
+    ERRHANDLER;
+
+    double b = 0.0;
+
+    __errnum = stack_Pop(_this->stk, &b);
+
+    ERRHANDLER;
+
+    int label = *(int*)(*current_byte);
+
+    if (label < 0) __errnum = EJMPBADLABEL;
+
+    ERRHANDLER;
+
+    if (a == b) *current_byte = _this->addr + label;
     else *current_byte += sizeof(int);
 
     return 0;
@@ -395,12 +600,28 @@ int cpu_je(cpu_t* _this, char** current_byte)
 
 int cpu_jne(cpu_t* _this, char** current_byte)
 {
-    double a, b;
+    ISNOTNULL(_this);
+    int __errnum = 0;
 
-    stack_Pop(_this->stk, &a);
-    stack_Pop(_this->stk, &b);
+    double a = 0.0;
 
-    if (a != b) *current_byte = (char*)_this->code + *(int*)(*current_byte);
+    __errnum = stack_Pop(_this->stk, &a);
+
+    ERRHANDLER;
+
+    double b = 0.0;
+
+    __errnum = stack_Pop(_this->stk, &b);
+
+    ERRHANDLER;
+
+    int label = *(int*)(*current_byte);
+
+    if (label < 0) __errnum = EJMPBADLABEL;
+
+    ERRHANDLER;
+
+    if (a > b) *current_byte = _this->addr + label;
     else *current_byte += sizeof(int);
 
     return 0;
@@ -410,17 +631,35 @@ int cpu_jne(cpu_t* _this, char** current_byte)
 int cpu_jmp(cpu_t* _this, char** current_byte)
 {
 
-    *current_byte = *current_byte = (char*)_this->code + *(int*)(*current_byte);
+    ISNOTNULL(_this);
+    int __errnum = 0;
+
+    int label = *(int*)(*current_byte);
+
+    if (label < 0) __errnum = EJMPBADLABEL;
+
+    ERRHANDLER;
+
+    *current_byte = _this->addr + label;
+
     return 0;
 
 }
 
 int cpu_out(cpu_t* _this)
 {
-    double a;
-    stack_Pop(_this->stk, &a);
+    ISNOTNULL(_this);
+    int __errnum = 0;
 
-    stack_Push(_this->stk, a);
+    double a = 0.0;
+
+    __errnum = stack_Pop(_this->stk, &a);
+
+    ERRHANDLER;
+
+    __errnum = stack_Push(_this->stk, a);
+
+    ERRHANDLER;
 
     printf("%lg\n", a);
 
@@ -429,6 +668,7 @@ int cpu_out(cpu_t* _this)
 
 int cpu_end(cpu_t* _this)
 {
+    ISNOTNULL(_this);
     end_logging();
     return 0;
 }

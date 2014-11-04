@@ -1,7 +1,7 @@
 #ifndef COMMANDS_H_INCLUDED
 #define COMMANDS_H_INCLUDED
 
-const int CODE_SIZE = 256;
+const int CODE_SIZE = 1024;
 
 
 enum COMMANDS

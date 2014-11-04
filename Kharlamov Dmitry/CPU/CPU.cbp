@@ -25,7 +25,10 @@
 		<Unit filename="CPU.cpp" />
 		<Unit filename="CPU.h" />
 		<Unit filename="commands.h" />
+		<Unit filename="errors.cpp" />
+		<Unit filename="errors.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="resources.h" />
 		<Unit filename="stack/stack.cpp" />
 		<Unit filename="stack/stack.h" />
 		<Extensions>
