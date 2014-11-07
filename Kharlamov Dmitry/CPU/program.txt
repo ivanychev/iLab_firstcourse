@@ -1,16 +1,22 @@
-push 0
-start:
-push 1
-add
-out
-pop ax
-pop ax
-pop ax
-pop ax
-pop ax
-push ax
-push ax
-push 10
-ja start
-dump
-end
+
+
+	mov ax, 8
+	call fact
+	out
+	end
+
+
+
+fact:
+	
+	push ax
+	push ax
+	push 1
+	je one
+	dec ax
+	call fact
+	mul
+	one:
+	out
+
+ret

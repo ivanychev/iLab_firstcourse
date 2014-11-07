@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <math.h>
+#include <ctype.h>
 
 #include "commands.h"
 
@@ -37,7 +38,9 @@ int labels_search(labels_t labels, char* name);
 
 int asmscanf(char** ptr_prog, char* cmd);
 
-int translation(char* str_prog, char* ptr, labels_t labels);
+int translation(char* str_prog, char* ptr, labels_t* labels);
+
+int htod(char* val);
 
 int main(int argc, char* argv[])
 {
@@ -64,9 +67,15 @@ int main(int argc, char* argv[])
     labels_t labels;
     labels.counter = 0;
 
-    int end_code = translation(str_prog, cpu_code, labels);
-    translation(str_prog, cpu_code, labels);
+    //printf("%s\n", str_prog);
 
+    int end_code = translation(str_prog, cpu_code, &labels);
+    for(int j = 0; j < labels.counter; j++)
+    {
+        printf("%s %d\n", labels.labels[j].name, labels.labels[j].addr);
+    }
+
+    translation(str_prog, cpu_code, &labels);
 
     FILE* out = NULL;
 
@@ -122,10 +131,13 @@ int asmscanf(char** ptr_prog, char* cmd)
 
 }
 
-int translation(char* prog, char* ptr, labels_t labels)
+int translation(char* prog, char* ptr, labels_t* ptr_labels)
 {
     ISNOTNULL(prog);
     ISNOTNULL(ptr);
+    ISNOTNULL(ptr_labels);
+
+    labels_t labels = *ptr_labels;
 
     char* start_code = ptr;
     char cmd[LEN_CMD_MAX] = "";
@@ -137,18 +149,22 @@ int translation(char* prog, char* ptr, labels_t labels)
     {
         if (!strcmp(cmd, S_CMD[i - BEGIN]))
         {
+            //printf("%s\n", cmd);
             *ptr = i;
             ptr++;
 
-            if (i == END) break;
-            else if (i > END) assert(!"undefined command");
+            //if (i == END) break;
+            //else if (i > END) assert(!"undefined command");
 
             if (i == PUSH)
             {
-                char* arg = (char*) calloc(ARG_MAX, sizeof(char));
-                ISNOTNULL(arg);
+                //char* arg = (char*) calloc(ARG_MAX, sizeof(char));
+                //ISNOTNULL(arg);
+                char arg[ARG_MAX] = "";
 
                 asmscanf(&prog, arg);
+
+
 
                 if (!strcmp(arg, S_REG[0])) {*ptr = REG; ptr++; *ptr = AX; ptr++;}
                 else
@@ -159,9 +175,11 @@ int translation(char* prog, char* ptr, labels_t labels)
                 if (!strcmp(arg, S_REG[3])) {*ptr = REG; ptr++; *ptr = DX; ptr++;}
                 else
                 {
-                    double val = strtod(prog, &prog);
                     *ptr = NUM;
                     ptr++;
+
+                    double val = atof(arg);
+                    //printf("%lg\n", val);
 
                     if (val == HUGE_VAL && errno == ERANGE)
                         assert(!"Value of push is too huge");
@@ -171,13 +189,14 @@ int translation(char* prog, char* ptr, labels_t labels)
 
                 }
 
-                free(arg);
+                //free(arg);
             }
 
             if (i == POP)
             {
-                char* reg = (char*) calloc(REG_MAX, sizeof(char));
-                ISNOTNULL(reg);
+                //char* reg = (char*) calloc(REG_MAX, sizeof(char));
+                //ISNOTNULL(reg);
+                char reg[REG_MAX] = "";
 
                 asmscanf(&prog, reg);
 
@@ -186,23 +205,122 @@ int translation(char* prog, char* ptr, labels_t labels)
                 if (!strcmp(reg, S_REG[2])) {*ptr = CX; ptr++;}
                 if (!strcmp(reg, S_REG[3])) {*ptr = DX; ptr++;}
 
-                free(reg);
+                //free(reg);
             }
 
-            if (JA <= i && i <= JMP)
+            if ((JA <= i && i <= JMP) || (i == CALL))
             {
-                char* name = (char*) calloc(LABEL_NAME_MAX, sizeof(char));
-                ISNOTNULL(name);
+                //char* name = (char*) calloc(LABEL_NAME_MAX, sizeof(char));
+                //ISNOTNULL(name);
+                char name[LABEL_NAME_MAX] = "";
 
                 asmscanf(&prog, name);
 
                 int len = strlen(name);
+                //printf("%s %d\n", name, labels_search(labels, name));
 
                 *(int*)ptr = labels_search(labels, name);
                 ptr += sizeof(int);
-                free(name);
+                //free(name);
             }
 
+            if (i == MOV)
+            {
+                //char str[20] = "";
+
+
+                char reg[REG_MAX] = "";
+                asmscanf(&prog, reg);
+
+                reg[strlen(reg) - 1] = '\0';
+
+                if (!strcmp(reg, S_REG[0])) {*ptr = AX; ptr++;}
+                if (!strcmp(reg, S_REG[1])) {*ptr = BX; ptr++;}
+                if (!strcmp(reg, S_REG[2])) {*ptr = CX; ptr++;}
+                if (!strcmp(reg, S_REG[3])) {*ptr = DX; ptr++;}
+
+
+                char arg[ARG_MAX] = "";
+                asmscanf(&prog, arg);
+
+
+                char last_char = arg[strlen(arg) - 1];
+
+
+                if (isdigit(last_char) || last_char == 'h')
+                {
+                    double val = 0;
+                    if (last_char == 'h')
+                    {
+                        arg[strlen(arg) - 1] = '\0';
+                        val = (double) htod(arg);
+
+                    }
+                    else val = atof(arg);
+
+                    *ptr = NUM;
+                    ptr++;
+
+                    if (val == HUGE_VAL && errno == ERANGE)
+                        assert(!"Value of push is too huge");
+
+                    *(double*)ptr = val;
+                    ptr += sizeof(double);
+                }
+                else
+                {
+                    *ptr = REG;
+                    ptr++;
+
+
+                    if (!strcmp(arg, S_REG[0])) {*ptr = AX; ptr++;}
+                    else
+                    if (!strcmp(arg, S_REG[1])) {*ptr = BX; ptr++;}
+                    else
+                    if (!strcmp(arg, S_REG[2])) {*ptr = CX; ptr++;}
+                    else
+                    if (!strcmp(arg, S_REG[3])) {*ptr = DX; ptr++;}
+                    else
+                    assert(!"BAD MOV, 2nd arg is bad.");
+
+                }
+
+
+
+            }
+
+            if (i == INC || i == DEC)
+            {
+                while (*prog == ' ') prog++;
+                if (*prog == '\n')
+                {
+                    *ptr = NOARG;
+                    ptr++;
+                }
+                else
+                {
+                    *ptr = REG;
+                    ptr++;
+
+                    char reg[REG_MAX] = "";
+                    asmscanf(&prog, reg);
+
+                    if (!strcmp(reg, S_REG[0])) {*ptr = AX; ptr++;}
+                    else
+                    if (!strcmp(reg, S_REG[1])) {*ptr = BX; ptr++;}
+                    else
+                    if (!strcmp(reg, S_REG[2])) {*ptr = CX; ptr++;}
+                    else
+                    if (!strcmp(reg, S_REG[3])) {*ptr = DX; ptr++;}
+                    else
+                    assert(!"BAD MOV, 2nd arg is bad.");
+                }
+
+            }
+
+
+
+            if (!*prog) break;
             asmscanf(&prog, cmd);
             i = BEGIN;
         }
@@ -212,29 +330,50 @@ int translation(char* prog, char* ptr, labels_t labels)
         {
             int len = strlen(cmd) - 1;
 
+
             if (cmd[len] != ':') assert(!"unknown command!");
 
-            char* name = (char*) calloc(LABEL_NAME_MAX, sizeof(char));
-            ISNOTNULL(name);
+            cmd[len] = '\0';
 
-            memcpy(name, cmd, (strlen(cmd) - 1));
+            //char* name = (char*) calloc(LABEL_NAME_MAX, sizeof(char));
+            //ISNOTNULL(name);
+            //char name[LABEL_NAME_MAX] = "";
+
+            //memcpy(name, cmd, (strlen(cmd) - 1));
 
 
-            int label_num = labels_search(labels, name);
+            int label_num = labels_search(labels, cmd);
 
             if (label_num == -1)
             {
-                strcpy(labels.labels[labels.counter].name, name);
+                strcpy(labels.labels[labels.counter].name, cmd);
                 labels.labels[labels.counter].addr = (int)ptr - (int)start_code;
                 labels.counter++;
             }
 
+            if (!*prog) break;
             asmscanf(&prog, cmd);
             i = BEGIN;
         }
 
+
+
     }
+
+    *ptr_labels = labels;
 
     return (int)ptr;
 }
 
+int htod(char* val)
+{
+    int dec = 0;
+    while(*val)
+    {
+
+       dec = dec * 16 + (*val - '0') % 10;
+       val++;
+    }
+
+    return dec;
+}

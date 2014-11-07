@@ -5,7 +5,7 @@
     Output - console. Logs - logs.txt
 
     @author Dmitry Kharlamov, student of 1st course DREC MIPT.
-    @version 1.0
+    @version 1.1
 */
 
 #include "stack\stack.h"
@@ -16,17 +16,19 @@
 
 #define ERRHANDLER if (__errnum) { errlog(__errnum, __FILE__, __LINE__); cpu_dump(_this); return __errnum; }
 
-const int       FOREVER = 1;
-const int CPU_STACK_MAX = 10000;
+const int              FOREVER  = 1;
+const int        CPU_STACK_MAX  = 10000;
+const int   MAX_CALL_STACK_LEN  = 100;
 
 struct cpu_t_
 {
-    stack_t *stk;
-    double ax;
-    double bx;
-    double cx;
-    double dx;
-    char* addr;
+    stack_t     *stk;
+    double      ax;
+    double      bx;
+    double      cx;
+    double      dx;
+    stack_t     *call;
+    char*       addr;
 
 };
 
@@ -77,11 +79,12 @@ int cpu_run(char* addr_code)
     start_logging("logs.txt");
 
 
-    int __errnum = 0;
     while(FOREVER)
     {
         int cmd = *current_byte;
         current_byte++;
+
+        //printf("%d \n",cmd);
 
         switch(cmd)
         {
@@ -161,6 +164,26 @@ int cpu_run(char* addr_code)
             if(cpu_out(cpu)) printf("CPU CRASHED! OUT HAVEN'T FULFILLED");
             break;
 
+        case MOV:
+            if(cpu_mov(cpu, &current_byte)) printf("CPU CRASHED! MOV HAVEN'T FULFILLED");
+            break;
+
+        case INC:
+            if(cpu_inc(cpu, &current_byte)) printf("CPU CRASHED! INC HAVEN'T FULFILLED");
+            break;
+
+        case DEC:
+            if(cpu_dec(cpu, &current_byte)) printf("CPU CRASHED! DEC HAVEN'T FULFILLED");
+            break;
+
+        case CALL:
+            if(cpu_call(cpu, &current_byte)) printf("CPU CRASHED! CALL HAVEN'T FULFILLED");
+            break;
+
+        case RET:
+            if(cpu_ret(cpu, &current_byte)) printf("CPU CRASHED! RET HAVEN'T FULFILLED");
+            break;
+
         case END:
             return 0;
             break;
@@ -185,6 +208,9 @@ int cpu_ctor(cpu_t** _this, int length, char* addr)
     assert(length > 0);
 
     __errnum = stack_Ctor(&(cpu->stk), length);
+
+    __errnum = stack_Ctor(&(cpu->call), MAX_CALL_STACK_LEN);
+
 
     if (__errnum)
         {
@@ -449,6 +475,8 @@ int cpu_sqrt(cpu_t* _this)
 
 int cpu_ja(cpu_t* _this, char** current_byte)
 {
+    ISNOTNULL(current_byte);
+    ISNOTNULL(*current_byte);
     ISNOTNULL(_this);
     int __errnum = 0;
 
@@ -479,7 +507,8 @@ int cpu_ja(cpu_t* _this, char** current_byte)
 
 int cpu_jae(cpu_t* _this, char** current_byte)
 {
-
+    ISNOTNULL(current_byte);
+    ISNOTNULL(*current_byte);
     ISNOTNULL(_this);
     int __errnum = 0;
 
@@ -510,6 +539,8 @@ int cpu_jae(cpu_t* _this, char** current_byte)
 
 int cpu_jb(cpu_t* _this, char** current_byte)
 {
+    ISNOTNULL(current_byte);
+    ISNOTNULL(*current_byte);
     ISNOTNULL(_this);
     int __errnum = 0;
 
@@ -540,6 +571,8 @@ int cpu_jb(cpu_t* _this, char** current_byte)
 
 int cpu_jbe(cpu_t* _this, char** current_byte)
 {
+    ISNOTNULL(current_byte);
+    ISNOTNULL(*current_byte);
     ISNOTNULL(_this);
     int __errnum = 0;
 
@@ -570,6 +603,8 @@ int cpu_jbe(cpu_t* _this, char** current_byte)
 
 int cpu_je(cpu_t* _this, char** current_byte)
 {
+    ISNOTNULL(current_byte);
+    ISNOTNULL(*current_byte);
     ISNOTNULL(_this);
     int __errnum = 0;
 
@@ -600,7 +635,10 @@ int cpu_je(cpu_t* _this, char** current_byte)
 
 int cpu_jne(cpu_t* _this, char** current_byte)
 {
+    ISNOTNULL(current_byte);
+    ISNOTNULL(*current_byte);
     ISNOTNULL(_this);
+
     int __errnum = 0;
 
     double a = 0.0;
@@ -630,7 +668,8 @@ int cpu_jne(cpu_t* _this, char** current_byte)
 
 int cpu_jmp(cpu_t* _this, char** current_byte)
 {
-
+    ISNOTNULL(current_byte);
+    ISNOTNULL(*current_byte);
     ISNOTNULL(_this);
     int __errnum = 0;
 
@@ -664,6 +703,197 @@ int cpu_out(cpu_t* _this)
     printf("%lg\n", a);
 
     return 0;
+}
+
+int cpu_mov(cpu_t* _this, char** ptr_current_byte)
+{
+    ISNOTNULL(ptr_current_byte);
+    ISNOTNULL(*ptr_current_byte);
+    ISNOTNULL(_this);
+
+    char* current_byte = *ptr_current_byte;
+    int __errnum = 0;
+
+    int reg = (int) *current_byte;
+    current_byte++;
+
+    int val = 0;
+
+    if (*current_byte == NUM)
+    {
+        current_byte++;
+        val = *(double*)current_byte;
+        current_byte += sizeof(double);
+    }
+    else if (*current_byte == REG)
+    {
+        current_byte++;
+        int reg2 = (int) *current_byte;
+        current_byte++;
+
+        //printf("%d\n", REG);
+
+        if (reg2 == AX) val = _this->ax;
+        if (reg2 == BX) val = _this->bx;
+        if (reg2 == CX) val = _this->cx;
+        if (reg2 == DX) val = _this->dx;
+        //printf("%lg\n", val);
+
+    }
+
+    if (reg == AX) _this->ax = val;
+    if (reg == BX) _this->bx = val;
+    if (reg == CX) _this->cx = val;
+    if (reg == DX) _this->dx = val;
+
+
+    *ptr_current_byte = current_byte;
+
+    return 0;
+}
+
+int cpu_inc(cpu_t* _this, char** ptr_current_byte)
+{
+    ISNOTNULL(ptr_current_byte);
+    ISNOTNULL(*ptr_current_byte);
+    ISNOTNULL(_this);
+
+    char* current_byte = *ptr_current_byte;
+    int __errnum = 0;
+
+
+    if (*current_byte == NOARG)
+    {
+        current_byte++;
+        double a = 0.0;
+
+        __errnum = stack_Pop(_this->stk, &a);
+
+        ERRHANDLER;
+
+        __errnum = stack_Push(_this->stk, (a + 1));
+
+        ERRHANDLER;
+    }
+    else if (*current_byte == REG)
+    {
+        current_byte++;
+        if (*current_byte == AX) _this->ax++;
+        if (*current_byte == BX) _this->bx++;
+        if (*current_byte == CX) _this->cx++;
+        if (*current_byte == DX) _this->dx++;
+        current_byte++;
+
+    }
+
+
+
+    *ptr_current_byte = current_byte;
+
+    return 0;
+}
+
+int cpu_dec(cpu_t* _this, char** ptr_current_byte)
+{
+    ISNOTNULL(ptr_current_byte);
+    ISNOTNULL(*ptr_current_byte);
+    ISNOTNULL(_this);
+
+    char* current_byte = *ptr_current_byte;
+    int __errnum = 0;
+
+
+    if (*current_byte == NOARG)
+    {
+        current_byte++;
+        double a = 0.0;
+
+        __errnum = stack_Pop(_this->stk, &a);
+
+        ERRHANDLER;
+
+        __errnum = stack_Push(_this->stk, (a - 1));
+
+        ERRHANDLER;
+    }
+    else if (*current_byte == REG)
+    {
+        current_byte++;
+        if (*current_byte == AX) _this->ax--;
+        if (*current_byte == BX) _this->bx--;
+        if (*current_byte == CX) _this->cx--;
+        if (*current_byte == DX) _this->dx--;
+        current_byte++;
+
+    }
+
+
+
+    *ptr_current_byte = current_byte;
+
+    return 0;
+}
+
+
+int cpu_call(cpu_t* _this, char** ptr_current_byte)
+{
+    ISNOTNULL(ptr_current_byte);
+    ISNOTNULL(*ptr_current_byte);
+    ISNOTNULL(_this);
+
+    char* current_byte = *ptr_current_byte;
+    int __errnum = 0;
+
+    int addr_func = *(int*)current_byte;
+    current_byte += sizeof(int);
+
+
+    if (addr_func < 0) __errnum = EJMPBADLABEL;
+
+    ERRHANDLER;
+
+    __errnum = stack_Push(_this->call, (double)(int)current_byte);
+
+    ERRHANDLER;
+
+    current_byte = _this->addr + addr_func;
+
+    *ptr_current_byte = current_byte;
+
+    return 0;
+}
+
+int cpu_ret(cpu_t* _this, char** ptr_current_byte)
+{
+    ISNOTNULL(ptr_current_byte);
+    ISNOTNULL(*ptr_current_byte);
+    ISNOTNULL(_this);
+
+    char* current_byte = *ptr_current_byte;
+    int __errnum = 0;
+
+    double addr_d = 0;
+
+    __errnum = stack_Pop(_this->call, &addr_d);
+
+    ERRHANDLER;
+
+    int addr_func = (int) addr_d;
+    //printf("addr func = %d\n", addr_func);
+
+    if (addr_func < 0) __errnum = EJMPBADLABEL;
+
+    ERRHANDLER;
+
+
+    current_byte = (char*)addr_func;
+
+
+    *ptr_current_byte = current_byte;
+
+
+    return 0;
+
 }
 
 int cpu_end(cpu_t* _this)

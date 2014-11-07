@@ -38,21 +38,31 @@ int cpu_cos(cpu_t* _this);
 
 int cpu_sqrt(cpu_t* _this);
 
-int cpu_ja( cpu_t* _this, char** ptr_current_byte);
+int cpu_ja( cpu_t* _this, char** current_byte);
 
-int cpu_jae(cpu_t* _this, char** ptr_current_byte);
+int cpu_jae(cpu_t* _this, char** current_byte);
 
-int cpu_jb( cpu_t* _this, char** ptr_current_byte);
+int cpu_jb( cpu_t* _this, char** current_byte);
 
-int cpu_jbe(cpu_t* _this, char** ptr_current_byte);
+int cpu_jbe(cpu_t* _this, char** current_byte);
 
-int cpu_je( cpu_t* _this, char** ptr_current_byte);
+int cpu_je( cpu_t* _this, char** current_byte);
 
-int cpu_jne(cpu_t* _this, char** ptr_current_byte);
+int cpu_jne(cpu_t* _this, char** current_byte);
 
-int cpu_jmp(cpu_t* _this, char** ptr_current_byte);
+int cpu_jmp(cpu_t* _this, char** current_byte);
 
 int cpu_out(cpu_t* _this);
+
+int cpu_mov(cpu_t* _this, char** ptr_current_byte);
+
+int cpu_inc(cpu_t* _this, char** ptr_current_byte);
+
+int cpu_dec(cpu_t* _this, char** ptr_current_byte);
+
+int cpu_call(cpu_t* _this, char** ptr_current_byte);
+
+int cpu_ret(cpu_t* _this, char** ptr_current_byte);
 
 int cpu_end(cpu_t* _this);
 

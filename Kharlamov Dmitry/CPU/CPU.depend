@@ -32,7 +32,7 @@
 
 1414716498 d:\projects\ilab_firstcourse\kharlamov dmitry\cpu\errors.h
 
-1415109254 source:d:\projects\kharlamov-project\cpu\cpu.cpp
+1415314914 source:d:\projects\kharlamov-project\cpu\cpu.cpp
 	"stack\stack.h"
 	"resources.h"
 	"CPU.h"
@@ -53,9 +53,9 @@
 
 1414804811 d:\projects\kharlamov-project\cpu\errors.h
 
-1414803739 d:\projects\kharlamov-project\cpu\cpu.h
+1415311720 d:\projects\kharlamov-project\cpu\cpu.h
 
-1414803432 d:\projects\kharlamov-project\cpu\commands.h
+1415307911 d:\projects\kharlamov-project\cpu\commands.h
 
 1414803891 source:d:\projects\kharlamov-project\cpu\errors.cpp
 	<stdio.h>
