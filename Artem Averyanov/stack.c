@@ -19,15 +19,14 @@ struct stack_t
 
 enum ERRORS
 {
-	FIRST_ERROR_NUMBER     = 1000,
-	
+	FIRST_ERROR_NUMBER     = 1000,	
 	NULL_PTR               = 1001,
 	STACK_FULL             = 1002,
 	STACK_EMPTY            = 1003,
-	
 	LAST_ERROR_NUMBER      = 1004,
-	
 };
+
+//===========================================================
 
 int stack_ctor(struct stack_t* _this)
 {
@@ -36,8 +35,8 @@ int stack_ctor(struct stack_t* _this)
 	_this->count = 0;
 	ISNOTNULL(_this->data);
 	assert(_this->data);
-	
 	return 0;
+
 }
 
 int stack_push(struct stack_t* _this, double value)
@@ -102,6 +101,10 @@ void er(int er_numb)
 	}
 }
 
+int main(int argc, char const *argv[])
+{
+	return 0;
+}
 
 int main()
 {
@@ -116,7 +119,7 @@ int main()
 	
 	er(stack_dump(&stack));
 	
-    er(stack_pop(&stack, &value_1));
+    	er(stack_pop(&stack, &value_1));
 	printf("%lg\n", value_1);
 	
 	er(stack_dump(&stack));
@@ -124,4 +127,14 @@ int main()
 	return 0;
 }
 
+
+/*
+	TODO
+
+	- Улучшить dump. Добавить вывод указателя и, собственно, того, что
+	дампится стек
+	- Исправить switch
+	- Добавить методы is_full, is_empty, size, ok, 
+	- Преамбулу в header
+*/
 
