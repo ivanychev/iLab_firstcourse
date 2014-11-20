@@ -1,0 +1,19 @@
+push 1
+pop ax
+:1
+push 100
+push ax
+ja :2
+push ax
+out
+push ax
+push ax
+mul
+out
+push ax
+push 1
+add
+pop ax
+jmp :1
+:2
+exit

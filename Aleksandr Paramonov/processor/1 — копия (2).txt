@@ -1,0 +1,23 @@
+push 1
+push ax
+push 1
+push bx
+call :1
+:1
+pop ax
+pop bx
+mul
+push bx
+pop ax
+pop 1
+add
+push ax
+push 6
+pop x
+ja :2
+call :1
+ret
+:2
+pop bx
+pop
+exit

@@ -1,0 +1,14 @@
+push 10
+push 20
+pop
+call :2
+pop
+jmp :1
+:2
+push 1
+push 1
+add
+pop
+ret
+:1
+exit
