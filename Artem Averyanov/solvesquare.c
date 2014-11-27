@@ -12,43 +12,29 @@ bool is_zero(double x)
 {
 	
 	if (abs(x) < DBL_EPSILON)
-	{
 		return true;
-	}
 	else
-	{
 		return false;
-	}
 }
 
-int solvesquare(double coeff_1,
-                double coeff_2,
-                double coeff_3,
-                double* root_1,
-                double* root_2)
+int solvesquare(double coeff_1  = 0,
+                double coeff_2  = 0,
+                double coeff_3  = 0,
+                double* root_1  = 0,
+                double* root_2  = 0)
 {
-	double discr    = 0,
+	double     discr    = 0,
                r_discr  = 0;
 	
 	if (is_zero(coeff_1))
-	{
 		if (is_zero(coeff_2))
-		{
-			if (is_zero(coeff_3))
-			{
-				return INF_ROOT;
-			}
-			else
-			{
-				return NO_ROOT;
-			}
-		}
+			if (is_zero(coeff_3)) return INF_ROOT;
+			else return NO_ROOT;
 		else
 		{
 			*root_1 = -coeff_3/coeff_2;
 			return ONE_ROOT;
 		}
-	}
 	else
 	{
 		discr = coeff_2*coeff_2 -4*coeff_1*coeff_3;  //discr - Discriminant
@@ -58,11 +44,8 @@ int solvesquare(double coeff_1,
 			return ONE_ROOT;
 		}
 		else
-		{
 			if (discr < 0)
-			{
 				return NO_ROOT;
-			}
 			else
 			{
 				r_discr = sqrt(discr);
@@ -70,7 +53,6 @@ int solvesquare(double coeff_1,
 				*root_2 = (-coeff_2 + r_discr)/(2*coeff_1);
 				return TWO_ROOT;
 			}
-		}
 	}
 }
 
@@ -80,40 +62,29 @@ int solvesquare(double coeff_1,
 
 int main()
 {
-	double coeff_1,
-	       coeff_2,
-	       coeff_3,
-	       root_1,
-	       root_2;
+	double coeff_1  = 0,
+	       coeff_2  = 0,
+	       coeff_3  = 0,
+	       root_1   = 0,
+	       root_2   = 0;
 	int a;
 	
 	scanf("%lg %lg %lg", &coeff_1, &coeff_2, &coeff_3);
 	a = solvesquare(coeff_1, coeff_2, coeff_3, &root_1, &root_2);
-	if (a == ONE_ROOT)
-	{
-		printf("x = %f", root_1);
-	}
-	if (a == TWO_ROOT)
-	{
-		printf("x1 = %f x2 = %f", root_1, root_2);
-	}
-	if (a == INF_ROOT)
-	{
-		printf("INF ROOT");
-	}
-	if (a == NO_ROOT)
-	{
-		printf("NO ROOT");
-	}
+	switch(a)
+	case ONE_ROOT: printf("x = %f", root_1);                    break;
+	case TWO_ROOT: printf("x1 = %f x2 = %f", root_1, root_2);   break;
+	case INF_ROOT: printf("INF ROOT");                          break;
+	case NO_ROOT:  printf("NO ROOT");                           break;
 	
 	return 0;
 }
 
 /*
 TODO
-	-	ИНИЦИАЛИЗИРОВАТЬ ПЕРЕМЕННЫЕ
-	-	SWITCH BITCH!
-	-	Убрать лишние фигурные скобки
+	-	ИНИЦИАЛИЗИРОВАТЬ ПЕРЕМЕННЫЕ       || COMPLETED ||
+	-	SWITCH BITCH!                     || COMPLETED ||
+	-	Убрать лишние фигурные скобки     || COMPLETED ||
 
 
 

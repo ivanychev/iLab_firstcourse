@@ -1,32 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <assert.h>
-#include <ctype.h>
-#include <string.h>
-#include <locale.h>
-
-#define ISNOTNULL(_this) if (_this == NULL) {return NULL_PTR;}
-
-const int STACK_MAX_LENGTH = 25;
-
-//Stack
-struct stack_t
-{
-	double* data;
-	int count;
-};
-
-enum ERRORS
-{
-	FIRST_ERROR_NUMBER     = 1000,	
-	NULL_PTR               = 1001,
-	STACK_FULL             = 1002,
-	STACK_EMPTY            = 1003,
-	LAST_ERROR_NUMBER      = 1004,
-};
-
-//===========================================================
+#include "my_stack.h"
 
 int stack_ctor(struct stack_t* _this)
 {
@@ -77,6 +49,7 @@ void stack_dtor(struct stack_t* _this)
 int stack_dump(struct stack_t* _this)
 {
 	int i = 0;
+	printf("stack %p\n", _this);
 	printf("сounter: %d\n", _this->count);
 	printf("stack_max_len: %d\n", STACK_MAX_LENGTH);
 	if (_this->count > 0)
@@ -90,21 +63,45 @@ int stack_dump(struct stack_t* _this)
 	return 0;
 }
 
+int is_stack_full(struct stack_t _this)
+{
+	if (_this.count > STACK_MAX_LENGTH) return 0;
+	else return 1;
+}
+
+int is_stack_empty (struct stack_t _this)
+{
+	if (_this.count == 0) return 0;
+	else return 1;
+}
+
+int stack_size(struct stack_t _this)
+{
+	return _this.count;
+}
+
+int is_stack_ok(struct stack_t _this)
+{
+	if ((_this.count < 0) || (_this.count > STACK_MAX_LENGTH)) return INVALID_COUNTER;
+	else if (_this.data == NULL) return NULL_PTR;
+	     else return 0;
+}
+
 void er(int er_numb)
 {
 	switch(er_numb)
 	{
-		case NULL_PTR:     printf("NULL ptr");
-		case STACK_FULL:   printf("stack is full");
-		case STACK_EMPTY:  printf("stack is empty");
-		default: break;
+		case NULL_PTR:     printf("NULL ptr");        break;
+		case STACK_FULL:   printf("stack is full");   break;
+		case STACK_EMPTY:  printf("stack is empty");  break;
+		//default: break;
 	}
 }
 
-int main(int argc, char const *argv[])
+/*int main(int argc, char const *argv[])
 {
 	return 0;
-}
+}*/
 
 int main()
 {
@@ -131,10 +128,10 @@ int main()
 /*
 	TODO
 
-	- Улучшить dump. Добавить вывод указателя и, собственно, того, что
+	[COMPLETED]- Улучшить dump. Добавить вывод указателя и, собственно, того, что
 	дампится стек
-	- Исправить switch
-	- Добавить методы is_full, is_empty, size, ok, 
-	- Преамбулу в header
+	[COMPLETED]- Исправить switch
+	[COMPLETED]- Добавить методы is_full, is_empty, size, ok, 
+	[COMPLETED]- Преамбулу в header
 */
 
